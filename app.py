@@ -1,8 +1,8 @@
-from fastapi import FastAPI, Response
+from fastapi import FastAPI
 from fastapi.exceptions import HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.status import *
-from typing import List
+from redistCache import setCache, getCache
 
 from models.ordersModel import OrdersModel
 from models.criterionModel import CriterionModel
@@ -18,13 +18,20 @@ app.add_middleware(
 )
 
 @app.post('/solution')
-def process_orders(orders: List[OrdersModel], criterion: CriterionModel):
+def process_orders(orders: list[OrdersModel], criterion: CriterionModel):
     try:
         total_price: float = 0
-        for order in orders:
-            if order.status == criterion.name:
-                total_price += order.price * order.quantity
-
-        return total_price
+        if criterion.name != 'all':
+            for order in orders:
+                if order.status == criterion.name:
+                    total_price += order.price * order.quantity
+        else:
+            for order in orders:
+                    total_price += order.price * order.quantity
+        cache = getCache(total_price)
+        if cache != None:
+            return {"total_price": float(cache)}
+        setCache(total_price)
+        return {"total_price": total_price}
     except Exception as e:
         raise HTTPException(status_code=HTTP_400_BAD_REQUEST, detail=str(e))
