@@ -1,9 +1,9 @@
 from pydantic import BaseModel, Field
-from models.criterionModel import CriterionModel
+from typing import Literal
 
 class OrdersModel(BaseModel):
     id: int = Field(gt=0, description="The price must be greater than zero")
-    item: str = Field(title="Item name", max_length=300, min_length=1)
+    item: str = Field(title="Item name", min_length=1)
     quantity: int = Field(gt=0, description="The price must be greater than zero")
     price: float = Field(gt=0, description="The price must be greater than zero")
-    status: CriterionModel
+    status: Literal["completed", "pending", "canceled", "all"]
